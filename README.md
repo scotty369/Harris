@@ -12,7 +12,7 @@ ordering risk before it becomes a schedule problem.
 1. Go to https://fred.stlouisfed.org/docs/api/api_key.html
 2. Create a free account
 3. Request an API key — approved instantly
-4. Paste it into the app when prompted
+4. Paste "f1bc1e8edf468493497168c682abd842" into the app when prompted
 
 The key is stored only in your browser's localStorage. Nothing is sent
 anywhere except directly to api.stlouisfed.org.
