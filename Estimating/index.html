@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estimating cost index — Harris IC</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div>
+      <div class="app-title">Estimating cost index</div>
+      <div class="app-sub">Estimating · Industrialized Construction · Live market data via FRED API</div>
+    </div>
+    <div class="topbar-right">
+      <span class="api-status" id="api-status">Connecting...</span>
+      <button class="btn-secondary" onclick="app.refresh()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- API key banner -->
+  <div class="api-key-banner" id="api-key-banner">
+    <div class="banner-title">FRED API key required</div>
+    <div class="banner-sub">
+      Free at <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank">fred.stlouisfed.org</a> — same key as the material tracker if you already have one.
+    </div>
+    <div class="banner-input-row">
+      <input type="text" id="api-key-input" placeholder="Paste your FRED API key" />
+      <button class="btn-primary" onclick="app.saveKey()">Connect</button>
+    </div>
+  </div>
+
+  <!-- Bid builder -->
+  <div class="bid-section">
+    <div class="bid-header">
+      <div class="bid-title">Bid contingency calculator</div>
+      <div class="bid-sub">Enter your base estimate — the tool applies a market-informed contingency based on live price trends</div>
+    </div>
+    <div class="bid-inputs" id="bid-inputs">
+      <!-- rendered by app.js -->
+    </div>
+    <div class="bid-summary" id="bid-summary">
+      <!-- rendered by app.js -->
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics" id="metrics">
+    <div class="metric-card"><div class="metric-label">Loading market data...</div></div>
+  </div>
+
+  <!-- Market index panels -->
+  <div class="section-label">Construction cost indices — live from FRED</div>
+  <div class="index-grid" id="index-grid">
+    <!-- rendered by app.js -->
+  </div>
+
+  <!-- Chart area -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">Price trend — select an index</div>
+      <div class="chart-tabs" id="chart-tabs"></div>
+    </div>
+    <canvas id="price-chart" height="110"></canvas>
+    <div class="chart-footer" id="chart-footer"></div>
+  </div>
+
+  <!-- Historical comparison table -->
+  <div class="section-label">12-month index summary</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:32%">Index</th>
+          <th style="width:14%">Current</th>
+          <th style="width:14%">1 mo ago</th>
+          <th style="width:14%">6 mo ago</th>
+          <th style="width:14%">12 mo ago</th>
+          <th style="width:12%">Trend</th>
+        </tr>
+      </thead>
+      <tbody id="index-body">
+        <tr><td colspan="6" class="state-msg">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="fred.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
