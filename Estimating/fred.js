@@ -75,6 +75,7 @@ async function fetchSummary(seriesId) {
   return {
     seriesId,
     latest:      latest.value,
+    latestValue: latest.value,
     latestDate:  latest.date,
     mo1:         mo1  ? mo1.value  : null,
     mo6:         mo6  ? mo6.value  : null,
@@ -82,6 +83,8 @@ async function fetchSummary(seriesId) {
     momPct:      pct(mo1,  latest),
     yoy6Pct:     pct(mo6,  latest),
     yoyPct:      pct(mo12, latest),
+    yoyChangePct:pct(mo12, latest),
+    momChangePct:pct(mo1,  latest),
     history:     obs,
   };
 }

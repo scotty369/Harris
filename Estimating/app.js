@@ -33,6 +33,22 @@ function trendArrow(pct) {
   return "–";
 }
 
+function latestValueOf(series) {
+  return series ? (series.latest ?? series.latestValue ?? null) : null;
+}
+
+function latestDateOf(series) {
+  return series ? (series.latestDate ?? null) : null;
+}
+
+function yoyValueOf(series) {
+  return series ? (series.yoyPct ?? series.yoyChangePct ?? null) : null;
+}
+
+function monthValueOf(series, key) {
+  return series ? (series[key] ?? null) : null;
+}
+
 // ── Bid calculator ────────────────────────────────────────────────────────────
 
 function renderBidInputs() {
@@ -125,12 +141,12 @@ function renderMetrics() {
   const series = Object.values(marketData);
   if (!series.length) return;
 
-  const yoys    = series.map(s => s.yoyPct).filter(v => v !== null);
+  const yoys    = series.map(s => yoyValueOf(s)).filter(v => v !== null);
   const avgYoy  = yoys.length ? yoys.reduce((a,b) => a+b, 0) / yoys.length : 0;
   const rising  = yoys.filter(v => v > 3).length;
   const falling = yoys.filter(v => v < -1).length;
   const maxYoy  = Math.max(...yoys);
-  const maxSeries = series.find(s => s.yoyPct === maxYoy);
+  const maxSeries = series.find(s => yoyValueOf(s) === maxYoy);
   const maxLabel  = maxSeries
     ? (ESTIMATE_INDICES.find(i => i.id === maxSeries.seriesId) || {}).label || maxSeries.seriesId
     : "—";
@@ -166,7 +182,7 @@ function renderMetrics() {
 function renderIndexGrid() {
   document.getElementById("index-grid").innerHTML = ESTIMATE_INDICES.map(idx => {
     const s   = marketData[idx.id];
-    const yoy = s ? s.yoyPct : null;
+    const yoy = yoyValueOf(s);
     const mom = s ? s.momPct : null;
     const rate = getContingencyRate(yoy);
     const lbl  = contingencyLabel(rate);
@@ -219,7 +235,7 @@ function renderChart(seriesId) {
   const gridColor = dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
 
   // Color line by trend
-  const yoy = s.yoyPct;
+  const yoy = yoyValueOf(s);
   const lineColor = yoy > 5 ? "#e24b4a" : yoy < -1 ? "#639922" : "#378add";
 
   if (window._chart) window._chart.destroy();
@@ -257,7 +273,7 @@ function renderChart(seriesId) {
   });
 
   document.getElementById("chart-footer").textContent =
-    `${label} · Current: ${s.latest.toFixed(1)} (${new Date(s.latestDate).toLocaleDateString("en-US",{month:"long",year:"numeric"})}) · YoY: ${fmtPct(yoy)}`;
+    `${label} · Current: ${latestValueOf(s).toFixed(1)} (${new Date(latestDateOf(s)).toLocaleDateString("en-US",{month:"long",year:"numeric"})}) · YoY: ${fmtPct(yoy)}`;
 }
 
 // ── Summary table ─────────────────────────────────────────────────────────────
@@ -269,13 +285,13 @@ function renderTable() {
 
     return `<tr onclick="selectChart('${idx.id}')" style="cursor:pointer">
       <td style="font-weight:500">${idx.label}</td>
-      <td>${s.latest.toFixed(1)}</td>
-      <td style="color:var(--text-secondary)">${s.mo1  ? s.mo1.toFixed(1)  : "—"}</td>
-      <td style="color:var(--text-secondary)">${s.mo6  ? s.mo6.toFixed(1)  : "—"}</td>
-      <td style="color:var(--text-secondary)">${s.mo12 ? s.mo12.toFixed(1) : "—"}</td>
+      <td>${latestValueOf(s).toFixed(1)}</td>
+      <td style="color:var(--text-secondary)">${monthValueOf(s, "mo1")  ? monthValueOf(s, "mo1").toFixed(1)  : "—"}</td>
+      <td style="color:var(--text-secondary)">${monthValueOf(s, "mo6")  ? monthValueOf(s, "mo6").toFixed(1)  : "—"}</td>
+      <td style="color:var(--text-secondary)">${monthValueOf(s, "mo12") ? monthValueOf(s, "mo12").toFixed(1) : "—"}</td>
       <td>
-        <span class="trend-pill ${trendCls(s.yoyPct)}">
-          ${trendArrow(s.yoyPct)} ${fmtPct(s.yoyPct)}
+        <span class="trend-pill ${trendCls(yoyValueOf(s))}">
+          ${trendArrow(yoyValueOf(s))} ${fmtPct(yoyValueOf(s))}
         </span>
       </td>
     </tr>`;
