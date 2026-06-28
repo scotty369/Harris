@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manufacturing work order tracker — Harris IC</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div>
+      <div class="app-title">Manufacturing work order tracker</div>
+      <div class="app-sub">Manufacturing · Industrialized Construction · Delivery forecasts via Open-Meteo</div>
+    </div>
+    <div class="topbar-right">
+      <span class="api-status" id="api-status">Loading...</span>
+      <button class="btn-secondary" onclick="app.refresh()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics" id="metrics">
+    <div class="metric-card skeleton-card"><div class="metric-label">Loading...</div></div>
+  </div>
+
+  <!-- Kanban board -->
+  <div class="section-label">Production floor — work order status</div>
+  <div class="kanban" id="kanban"></div>
+
+  <!-- Delivery weather alerts -->
+  <div class="section-label" style="margin-top:1.25rem">
+    Delivery weather outlook
+    <span class="section-note">Live 7-day forecast per job site — Open-Meteo API</span>
+  </div>
+  <div class="weather-grid" id="weather-grid">
+    <div class="state-msg skeleton">Fetching site forecasts...</div>
+  </div>
+
+  <!-- Work order detail table -->
+  <div class="section-label" style="margin-top:1.25rem">All work orders</div>
+  <div class="toolbar">
+    <label>Stage</label>
+    <select id="f-stage" onchange="app.renderTable()">
+      <option value="all">All stages</option>
+      <option value="Queued">Queued</option>
+      <option value="Fabrication">Fabrication</option>
+      <option value="Assembly">Assembly</option>
+      <option value="QC">QC</option>
+      <option value="Ready to ship">Ready to ship</option>
+      <option value="Shipped">Shipped</option>
+    </select>
+    <label>Job site</label>
+    <select id="f-job" onchange="app.renderTable()">
+      <option value="all">All jobs</option>
+    </select>
+    <label>Priority</label>
+    <select id="f-priority" onchange="app.renderTable()">
+      <option value="all">All priorities</option>
+      <option value="Critical">Critical</option>
+      <option value="High">High</option>
+      <option value="Standard">Standard</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:13%">WO #</th>
+          <th style="width:22%">Assembly</th>
+          <th style="width:16%">Job site</th>
+          <th style="width:12%">Stage</th>
+          <th style="width:10%">Priority</th>
+          <th style="width:11%">Ship by</th>
+          <th style="width:16%">Blocked?</th>
+        </tr>
+      </thead>
+      <tbody id="wo-body">
+        <tr><td colspan="7" class="state-msg">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+<script src="data.js"></script>
+<script src="weather.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
