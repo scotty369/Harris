@@ -6,6 +6,10 @@
 const FRED_BASE = "https://api.stlouisfed.org/fred";
 const CACHE_KEY = "harris_fred_cache";
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in ms
+const CORS_PROXY_BUILDERS = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+];
 
 // ── Key management ────────────────────────────────────────────────────────────
 
@@ -37,6 +41,26 @@ function setCache(cacheKey, data) {
   } catch { /* storage full — skip */ }
 }
 
+async function fetchJsonWithFallback(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (directErr) {
+    for (const buildProxyUrl of CORS_PROXY_BUILDERS) {
+      try {
+        const proxyUrl = buildProxyUrl(url);
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+      } catch {
+        // Try the next fallback.
+      }
+    }
+    throw directErr;
+  }
+}
+
 // ── Core fetch ───────────────────────────────────────────────────────────────
 
 async function fredFetch(endpoint, params = {}) {
@@ -52,12 +76,14 @@ async function fredFetch(endpoint, params = {}) {
   const cached = getCached(cacheKey);
   if (cached) return cached;
 
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    if (res.status === 403) throw new Error("Invalid API key — check your FRED key");
-    throw new Error(`FRED API error: ${res.status}`);
+  let data;
+  try {
+    data = await fetchJsonWithFallback(url.toString());
+  } catch (err) {
+    if (err.message.includes("403")) throw new Error("Invalid API key — check your FRED key");
+    if (err.name === "TypeError") throw new Error("Unable to reach FRED from this deployment. Try the proxy fallback or use an Azure relay.");
+    throw new Error(`FRED API error: ${err.message}`);
   }
-  const data = await res.json();
   setCache(cacheKey, data);
   return data;
 }
