@@ -6,6 +6,7 @@
 const FRED_BASE = "https://api.stlouisfed.org/fred";
 const CACHE_KEY = "harris_fred_cache";
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in ms
+const USE_PROXY_FIRST = typeof location !== "undefined" && location.hostname.endsWith("github.io");
 const CORS_PROXY_BUILDERS = [
   url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
   url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
@@ -41,20 +42,41 @@ function setCache(cacheKey, data) {
   } catch { /* storage full — skip */ }
 }
 
+async function fetchJsonDirect(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return await res.json();
+}
+
+async function fetchJsonViaProxy(url) {
+  for (const buildProxyUrl of CORS_PROXY_BUILDERS) {
+    try {
+      const proxyUrl = buildProxyUrl(url);
+      const res = await fetch(proxyUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch {
+      // Try the next fallback.
+    }
+  }
+  throw new Error("Unable to reach FRED through proxy fallbacks");
+}
+
 async function fetchJsonWithFallback(url) {
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    return USE_PROXY_FIRST ? await fetchJsonViaProxy(url) : await fetchJsonDirect(url);
   } catch (directErr) {
-    for (const buildProxyUrl of CORS_PROXY_BUILDERS) {
+    if (USE_PROXY_FIRST) {
       try {
-        const proxyUrl = buildProxyUrl(url);
-        const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return await res.json();
+        return await fetchJsonDirect(url);
       } catch {
-        // Try the next fallback.
+        // Fall through to the original error below.
+      }
+    } else {
+      try {
+        return await fetchJsonViaProxy(url);
+      } catch {
+        // Fall through to the original error below.
       }
     }
     throw directErr;
